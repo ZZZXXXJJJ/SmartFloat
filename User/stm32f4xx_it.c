@@ -32,6 +32,8 @@
 #include "./usart/bsp_debug_usart.h"
 #include "./report/report1.h"
 #include <string.h>
+#include "./SYS/systick.h"
+#include "./led/bsp_led.h"
 
 /** @addtogroup STM32F429I_DISCOVERY_Examples
   * @{
@@ -255,7 +257,7 @@ void RNSS_USART_IRQHandler(void)
 						}
 						Usart_SendStr_length( UART4, dLan,28);
 						strncpy((char*)CENTER_BUF,(char*)dLan,28);
-						BD_REPORT(56);
+						//BD_REPORT(56);
 						USART_Cmd(USART3,DISABLE);
 				  }
 				}
@@ -270,12 +272,14 @@ uint8_t USARTE0_RX_STA=0;
 uint8_t USARTE0_RX_COUNT=0;
 uint8_t USARTE0_RX_BUF[200];
 uint8_t RDSS_RX_REPORT[200];
+uint8_t WFI_FLAG=1;
 void RDSS_USART_IRQHandler(void)
 {
   uint8_t res,t;
 	if((USART6->SR&(1<<5)))
 	{
 		res=USART6->DR;
+		//USART6->DR=res;
 		if(res=='$')//0xEC
 		{USARTE0_RX_BUF[0]=res;}
 	  if(USARTE0_RX_BUF[0]=='$')//0xEC
@@ -292,18 +296,24 @@ void RDSS_USART_IRQHandler(void)
 		{
 			 if(crc_test(USARTE0_RX_BUF, 1, USARTE0_RX_COUNT))
 			 {
+				 if(strncmp((char*)USARTE0_RX_BUF,"$BDFKI,TXA,Y,Y",14)==0)
+				{					
+					Usart_SendStr_length( UART4, USARTE0_RX_BUF,USARTE0_RX_COUNT);
+					WFI_FLAG=1;
+				
+					TIM_Cmd(TIM6, ENABLE);
+					
+				}
         if(strncmp((char*)USARTE0_RX_BUF,"$BDTXR",6)==0)	
 				{	
-					for(t=22;USARTE0_RX_BUF[t]!='*';t++)
-					{
-						RDSS_RX_REPORT[t-22]=USARTE0_RX_BUF[t];
-					}
-					Usart_SendStr_length( UART4, RDSS_RX_REPORT,t-22);
+//					for(t=22;USARTE0_RX_BUF[t]!='*';t++)
+//					{
+//						RDSS_RX_REPORT[t-22]=USARTE0_RX_BUF[t];
+//					}
+//					Usart_SendStr_length( UART4, RDSS_RX_REPORT,t-22);
+					Usart_SendStr_length( UART4, USARTE0_RX_BUF,USARTE0_RX_COUNT);
 				}
-					if(strncmp((char*)USARTE0_RX_BUF,"$BDFKI",6)==0)
-				{					
-			  Usart_SendStr_length( UART4, USARTE0_RX_BUF,USARTE0_RX_COUNT);
-				}
+				
 			 }
 
 			USARTE0_RX_BUF[0]=0;
@@ -317,7 +327,6 @@ uint8_t USART4_RX_COUNT=0;
 uint8_t USART4_RX_BUF[200];
 uint8_t CENTER_BUF[200];
 uint8_t TXA6=0;
-
 void CENTER_USART_IRQHandler(void)
 {
   uint8_t res,t;
@@ -325,7 +334,12 @@ void CENTER_USART_IRQHandler(void)
 	if((UART4->SR&(1<<5)))
 	{
 		res=UART4->DR;
-		UART4->DR=res;
+		//UART4->DR=res;
+		if(res==0xdd)
+		{
+			WFI_FLAG=0;
+			USART_Cmd(USART3,ENABLE);
+		}
 		if(res==0xEC)//0xEC
 		{USART4_RX_BUF[USART4_RX_COUNT]=res;}
 		if(USART4_RX_BUF[0]==0xEC)//0xEC
@@ -341,16 +355,39 @@ void CENTER_USART_IRQHandler(void)
 //				USART6->DR=CENTER_BUF[t];
 //				while((USART6->SR&0X40)==0);
 //			}
-			BD_count=USART4_RX_COUNT*2;
 			
-			BD_REPORT(BD_count);
-			strcpy((char*)USART4_RX_BUF,"");//«Â¡„
-			USART4_RX_STA=0;
+			
+			BD_REPORT(USART4_RX_COUNT,CENTER_BUF);
+			//strcpy((char*)USART4_RX_BUF,"");//«Â¡„
+      USART4_RX_BUF[0]=0;  
 		  USART4_RX_COUNT=0;
 		}
 	}
 	
-}		
+}
+
+void  BASIC_TIMx_IRQHandler (void)
+{
+	uint8_t i=0;
+	static uint8_t TIME_count=0;
+	if ( TIM_GetITStatus( BASIC_TIMx, TIM_IT_Update) != RESET ) 
+	{	
+		TIME_count++;
+		if(TIME_count==2)
+		{ 
+			WFI_FLAG=0;
+			//LED1_TOGGLE;	
+			TIME_count=0;
+			TIM_Cmd(TIM6, DISABLE);
+			for(i=0;i<3;i++)
+			{
+				Usart_SendByte(UART4,0x96);
+			}
+		}
+    TIM_ClearITPendingBit(BASIC_TIMx, TIM_IT_Update); 
+     		
+	}		 	
+}
 /**
   * @}
   */ 

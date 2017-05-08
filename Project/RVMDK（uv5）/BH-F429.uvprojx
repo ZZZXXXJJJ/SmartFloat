@@ -679,6 +679,31 @@
               <FileType>1</FileType>
               <FilePath>..\..\User\report\report1.c</FilePath>
             </File>
+            <File>
+              <FileName>bsp_SysTick.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\systick\bsp_SysTick.c</FilePath>
+            </File>
+            <File>
+              <FileName>systick.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\SYS\systick.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_led.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\led\bsp_led.c</FilePath>
+            </File>
+            <File>
+              <FileName>BD.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\Satellite\BD.c</FilePath>
+            </File>
+            <File>
+              <FileName>TTCA.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\Satellite\TTCA.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
