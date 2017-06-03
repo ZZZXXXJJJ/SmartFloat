@@ -694,16 +694,6 @@
               <FileType>1</FileType>
               <FilePath>..\..\User\led\bsp_led.c</FilePath>
             </File>
-            <File>
-              <FileName>BD.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\User\Satellite\BD.c</FilePath>
-            </File>
-            <File>
-              <FileName>TTCA.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\..\User\Satellite\TTCA.c</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>
